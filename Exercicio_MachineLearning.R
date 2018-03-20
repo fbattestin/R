@@ -30,7 +30,6 @@ print(indexes)
 
 head(indexes)
 
-
 indexes
 
 # criando training set a partir do index com dados do dataset iris
@@ -87,6 +86,7 @@ predictions <- predict(
     object = model
     ,newdata = teste
     ,type = "class")
+
 
 # criando confusion matrix
 # confusion matrix é importante para o modelo para observar se o modelo esta 
