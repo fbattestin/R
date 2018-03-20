@@ -149,7 +149,7 @@ server <- function(input, output) {
       x = input$petal.length
       ,y = input$petal.width
       ,col = "green"
-      ,pch = 5
+      ,pch = 2
       ,cex = 2
       ,lwd = 2)
   })
