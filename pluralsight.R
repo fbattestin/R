@@ -515,3 +515,329 @@ predict(
   ,newdata = data.frame(
     petal.length = c(2, 5, 7)
     ,petal.width = c(0, 0, 0)))
+
+####################################################################################
+#Exercicio: Machine Learning
+# Qual especie de Iris?
+# Quao acurado esta o modelo de predicao
+#
+####################################################################################
+
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/Repo/r/material/cursos/R")
+
+#lendo arquivos csv (criando dataset)
+iris <- read.csv("Iris.csv")
+
+
+#instalando pacote de arvore de decisao
+install.packages("tree")
+
+#carregando biblioteca de arvore de decisao
+library(tree)
+
+head(iris)
+
+#setando seed para randomizar a reproducao do modelo
+set.seed(42)
+
+# 100 de 150 linhas indexadas com  valores randomicos 
+indexes <- sample(x = 1:150, size = 100)
+
+print(indexes)
+
+head(indexes)
+
+indexes
+
+# criando training set a partir do index com dados do dataset iris
+# é inserido na variavel linhas o objeto indexes para gerar a massa de trieno
+train <- iris[indexes, ]
+
+head(train)
+
+print(train)
+
+
+# criando teste set a partir do index com dados do dataset iris
+# para gerar a massa de teste é feito o mesmo, porem é inserido o sinal de subtracao
+# para que seja gerados numeros aletorios diferentes do ja compostostos no objeto index
+teste <- iris[- indexes, ]
+
+
+#treinando arvore de decisao
+model <- tree(formula = species ~ . ,data = train)
+
+# inspecionando modelo
+summary(model)
+
+# visualizando modelo de arvore de decisao
+plot(model)
+
+#adicionando rotulo
+text(model)
+
+# criando paleta de cores para plotagem
+palette <- heat.colors(3,alpha = 1)
+
+# criando plot de ponto distribuido separando as especieis por cor
+plot(
+  x = iris$petal.length
+  ,y = iris$petal.width
+  ,pch = 19
+  ,col = palette[as.numeric(iris$species)]
+  ,main = "Iris Comprimento Vs. Largura da Petala"
+  ,xlab = "Petal Length(cm)"
+  ,ylab = "Petal Width(cm)"
+)
+
+#plotando fronteiras de decisao 
+partition.tree(
+  tree = model
+  ,label = "Species"
+  ,add = TRUE)
+
+#realizando predicao do model inserindo dataset de teste
+# type = class significa que o teste de predicao do modelo
+# sera realizado para classificao de novos dados
+predictions <- predict(
+  object = model
+  ,newdata = teste
+  ,type = "class")
+
+
+# criando confusion matrix
+# confusion matrix é importante para o modelo para observar se o modelo esta 
+# correto ou nao ao classificar os dados, normalmente sao necessarios maiores informacoes
+# para determinar o quao acurado ou confiavel estar o seu modelo de machine learnin
+# para isso é necessario baixar e instalar o pacote caret e as dependencias lattice e ggplot2
+
+
+install.packages("caret")
+install.packages("lattice")
+install.packages("ggplot2")
+install.packages("e1071")
+
+
+#carregando biblioteca
+library("caret")
+
+table(
+  x = predictions
+  ,y = teste$species
+)
+
+# ##result set
+# y
+# x                 Iris-setosa Iris-versicolor Iris-virginica
+# Iris-setosa              17               0              0
+# Iris-versicolor           0              16              0
+#Iris-virginica            0               2             15
+
+#carregando liblioteca 
+#que significa treinamento de classificação e regressão
+library(caret)
+
+
+
+#avaliando os resultados de predicao
+confusionMatrix(
+  data = predictions
+  ,reference = teste$species
+)
+
+
+#salvando arvore de decisao
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/Repo/r/material/cursos/R")
+
+#salvando modelo
+save(model, file = "Tree.Rdata")
+
+
+####################################################################################
+#Exercicio: construindo app shiny
+####################################################################################
+
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/Repo/r/material/cursos/R")
+
+#lendo arquivos csv (criando dataset)
+iris <- read.csv("Iris.csv")
+
+head(iris)
+
+#instalando pacote shiny para desenvolvimento de APP UI.
+install.packages("shiny")
+
+#carregando biblioteca
+library("shiny")
+library(tree)
+
+#criando User Interface
+ui <- fluidPage("Hell World!")
+
+
+#criando funcao server
+server <- function(input,output){}
+
+#criando app
+shinyApp(
+  ui = ui
+  ,server = server
+)
+
+#criando ui com interacao de entrada e saida de parametros
+ui <- fluidPage(
+  titlePanel("Input and Output")
+  ,sidebarLayout(
+    sidebarPanel(
+      sliderInput(
+        inputId = "number"
+        ,label = "choose a number"
+        ,min = 0
+        ,max = 100
+        ,value = 50))
+    ,mainPanel(
+      textOutput(
+        outputId = "text"))))
+
+#criando funcao
+server <- function(input, output){
+  output$text <- renderText({
+    paste("you selected:", input$num )})
+}
+
+shinyApp(
+  ui = ui
+  ,server = server
+)
+
+
+#### criando app a partir do modelo criado no execicio de machine learning
+
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/Repo/r/material/cursos/R")
+
+#carregando modelo em memoria 
+# o modelo criado no exercicio de machine learning
+# ja contem a variavel "model" que sera carregada em memoria
+load("Tree.RData")
+
+#carregando biblioteca de cores
+library(RColorBrewer)
+
+#criando variavel com a paleta de cores
+palette <- brewer.pal(3,"Set2")
+
+# criando interface do usuario
+# interface devera conter dois sliders numericos uma para o comprimento e outro para largura
+# da petala.
+# para a saida sera plotado a visualizacao dos dados e um bloco de texto
+# informando qual especies o modelo preve
+
+head(iris)
+
+ui <- fluidPage(
+  titlePanel("Iris - Species Predictor")
+  ,sidebarLayout(
+    sidebarPanel(
+      sliderInput(
+        inputId = "petal.length"
+        ,label = "petal length (cm)"
+        ,min = 1
+        ,max = 7
+        ,value = 4)
+      ,sliderInput(
+        inputId = "petal.width"
+        ,label = "petal width (cm)"
+        ,min = 0.0
+        ,max = 2.5
+        ,step = 0.5
+        ,value = 1.5))
+    ,mainPanel(
+      textOutput(
+        outputId = "text")
+      ,plotOutput(
+        outputId = "plot"))))
+
+#criando codigo do server
+server <- function(input, output) {
+  output$text = renderText({
+    
+    #no body da funcao sera criado um data.frame com quatro colunas e uma linha
+    predictors <- data.frame(
+      petal.length = input$petal.length
+      ,petal.width = input$petal.width
+      ,sepal.length = 0
+      ,sepal.width = 0)
+    
+    # fazendo predicao
+    predictions = predict(
+      object = model
+      ,newdata = predictors
+      ,type = "class")
+    
+    paste("The predicted specie is: ",
+          as.character(predictions))
+  })
+  
+  output$plot = renderPlot({
+    #criando scatterplot
+    # criando plot de ponto distribuido separando as especieis por cor
+    plot(
+      x = iris$petal.length
+      ,y = iris$petal.width
+      ,pch = 19
+      ,col = palette[as.numeric(iris$species)]
+      ,main = "Iris Comprimento Vs. Largura da Petala"
+      ,xlab = "Petal Length(cm)"
+      ,ylab = "Petal Width(cm)"
+    )
+    
+    #plotando fronteiras de decisao 
+    partition.tree(
+      tree = model
+      ,label = "Species"
+      ,add = TRUE)
+    
+    # desenhando valor previsto na area de plotagem
+    points(
+      x = input$petal.length
+      ,y = input$petal.width
+      ,col = "green"
+      ,pch = 2
+      ,cex = 2
+      ,lwd = 2)
+  })
+}
+
+##criando a shiny app
+shinyApp(
+  ui = ui
+  ,server = server)
+
+####################################################################################
+#Exercicio: nonlinear regression
+####################################################################################
+
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/Repo/r/material/cursos/R")
+
+#lendo arquivos csv (criando dataset)
+cars <- read.csv("cars.csv")
+
+head(cars)
+
+#plotando relacao distancia -> velocidade
+plot(cars$dist ~ cars$speed)
+
+#inserindo linha
+lines(lowess(cars$dist ~ cars$speed))
+
+#modelo polynomial 
+m2 <- lm(dist ~ poly(speed, 2, raw = TRUE), data = cars)
+
+summary(m2)
+
+lines(cars$speed, predict(m2), col=2)
