@@ -1,0 +1,546 @@
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco")
+
+library("ggplot2")
+
+#lendo arquivos csv (criando dataset)
+DatasetFlatFactor <- read.csv("DatasetFlatFactor.csv")
+
+head(DatasetFlatFactor)
+
+summary(DatasetFlatFactor)
+#Numero de Amostras:1569
+
+#-----------------------------------------
+# Realizando nova análise exploratória sob
+# amostras coletadas
+#-----------------------------------------
+
+#HistogramaFlatFactor.png
+#gerando histograma com distribuição de flat factor
+hist(DatasetFlatFactor$flat_factor)
+
+#HistogramaDistribuiçãoDeComportamentoFlat(porDIa).png
+#gerando histograma com distribuição de comportamento flat
+hist(DatasetFlatFactor$sum_flat_growth)
+
+#HistogramaDIstribuiçãoDeAmostrasColetadas(dia).png
+#histograma com a distribuição de dias coletados 
+hist(DatasetFlatFactor$max_rowid)
+
+#HistogramaDistribuiçãoPorProduto.png
+hist(DatasetFlatFactor$idProduct, breaks = 2)
+
+#PlotDistribuicaoDensidadeFlat.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactor$flat_factor))
+
+#PlotDistribuicaoDensidadeFlat+Frequencia
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactor$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactor)))
+
+
+#Observado que os bancos com comportamento flat podem ser removidos 
+#somente os bancos com 100% das amostras coletadas que não tiveram nenhuma variação
+#durante o periodo observado.
+
+#-----------------------------------------
+# Realizando nova análise exploratória sob
+# amostras que tiveram algum comportamento 
+# sendo crescimento ou expurgo durante o 
+# preíodo observado
+#-----------------------------------------
+
+#criando novo data frame com exemplares com padrão de persistencia/dia < 1
+DatasetFlatFactorPersistentData <- DatasetFlatFactor[DatasetFlatFactor$flat_factor < 1,]
+
+summary(DatasetFlatFactorPersistentData)
+#Numero de amostras:935
+
+
+#HistogramaFlatFactor.png
+#gerando histograma com distribuição de flat factor
+hist(DatasetFlatFactorPersistentData$flat_factor, breaks = 10)
+
+#HistogramaDistribuiçãoDeComportamentoFlat(porDIa).png
+#gerando histograma com distribuição de comportamento flat
+hist(DatasetFlatFactorPersistentData$sum_flat_growth)
+
+#HistogramaDIstribuiçãoDeAmostrasColetadas(dia).png
+#histograma com a distribuição de dias coletados 
+hist(DatasetFlatFactorPersistentData$max_rowid)
+
+#HistogramaDistribuiçãoPorProduto.png
+hist(DatasetFlatFactorPersistentData$idProduct, breaks = 2)
+
+#PlotDistribuicaoDensidadeFlat.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactorPersistentData$flat_factor))
+
+#PlotDistribuicaoDensidadeFlat+Frequencia.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactorPersistentData$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactorPersistentData)))
+
+#Mesmo removendo os bancos de dados que não tiveram comportamento de crescimento ou expurgo
+#do dataset, é possível observar uma grande distribuição com densidade muito proximo de 1 
+#ou seja, com pouca relação de persistencia de dados.
+# porém é possivel observar uma boa distribuição proximo a densidade 0.0 e 0.2.
+
+
+#-----------------------------------------
+#obtendo quartil
+quantile(DatasetFlatFactorPersistentData$flat_factor)
+#0%         25%         50%         75%        100% 
+#0.002702702 0.622086995 0.944594594 0.990099009 0.998650472 
+# mais de 50% das amostras mostram uma oscilação muito pequena
+# em relação aos dias coletados e o fator persistência.
+
+
+# diostribuição sem remover bancos que não tiveram
+# nenhuma persistencia observada
+quantile(DatasetFlatFactor$flat_factor)
+#0%         25%         50%         75%        100% 
+#0.002702702 0.899654526 0.995948681 1.000000000 1.000000000 
+
+#-----------------------------------------
+# Plotando BloxPlot para análise dos quartis 
+# e outliers por segmento de negocio, utilizando
+# o dataset somente com bancos que possuem
+# caracteristica de persistencia
+#-----------------------------------------
+#BoxplotFatorPersistenciaPorSegmentoNegocio.png
+#plotando relacao de persistencia/dia por segmento
+boxplot(flat_factor~segment,data=DatasetFlatFactorPersistentData, main="Fator de Persistência por Ambiente", 
+        xlab="Ambiente", ylab="Persistência/Dia (flat_factor%)")
+
+#BoxplotFatorPersistenciaPorProduto.png
+#plotando relacao de persistencia/dia por produto
+boxplot(flat_factor~idProduct,data=DatasetFlatFactorPersistentData, main="Fator de Persistência por Tecnologia (1 = Oracle / 2 = SQL Server)", 
+        xlab="Tecnologia", ylab="Persistência/Dia (flat_factor%)")
+
+#-----------------------------------------
+# Observando o boxsplot é possível identificar 
+# a grande quantidade de outliers para os segmentos
+# CORPORATIVO e POS NEGOCIACAO, abrindo margem
+# para a analise especifica para esses ambientes
+# e a possibilidade de derivar novas categorias
+#-----------------------------------------
+
+#criando novo dataframe com exemplares somente do segmento POS NEGOCIACAO
+# numero de exemplares:365
+DatasetFlatFactorPosNeg <- DatasetFlatFactorPersistentData[DatasetFlatFactorPersistentData$segment == "POS NEGOCIACAO",]
+
+head(DatasetFlatFactorPosNeg)
+
+#-----------------------------------------
+# Observando densidade e frequencia dos exemplares
+# para o segmento de POS NEGOCIACAO
+#-----------------------------------------
+
+#PlotDistribuicaoDensidadeFlatPosNegociacao.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactorPosNeg$flat_factor))
+
+#PlotDistribuicaoDensidadeFlatt+Frequencia_PosNegociacao.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactorPosNeg$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactorPosNeg)))
+
+#identificando outliers
+boxplot.stats(DatasetFlatFactorPosNeg$flat_factor)
+# > boxplot.stats(DatasetFlatFactorPosNeg$flat_factor)
+# $stats
+# [1] 0.5708502 0.8220109 0.9716599 0.9946019 0.9986505
+# 
+# $n
+# [1] 389
+# 
+# $conf
+# [1] 0.9578338 0.9854860
+# 
+# $out
+# [1] 0.4851259 0.5344130 0.1914894 0.4197248 0.5200573 0.4655870 0.3172414 0.4147105 0.3830275
+# [10] 0.4302326 0.3404864 0.2761087 0.5563258 0.4627907 0.3404255 0.1953488 0.5115332 0.3751687
+# [19] 0.4426451 0.4137931 0.4091954 0.3609195 0.4160920 0.5400341 0.5400458 0.3928036 0.3287356
+# [28] 0.3430750 0.3595934 0.3188073 0.4668192 0.4893617 0.1207598 0.3708920 0.3822581 0.4715447
+# [37] 0.0974478 0.2883721 0.4298851 0.5106383 0.2053743 0.3395349 0.3839080 0.4465116 0.5127768
+# [46] 0.4220183 0.2518741 0.3748212 0.1904048
+
+# Maior outlier identificado 0.5400458, sera criado um novo 
+# dataset somente com valores menores do que esse.
+
+#-----------------------------------------
+#criando novo dataframe com outliers somente do segmento POS NEGOCIACAO
+# numero de exemplares:39
+#-----------------------------------------
+DatasetFlatFactorPosNegOut <- DatasetFlatFactorPosNeg[DatasetFlatFactorPosNeg$flat_factor <= 0.5400458,]
+
+summary(DatasetFlatFactorPosNegOut)
+
+quantile(DatasetFlatFactorPosNegOut$flat_factor)
+# > quantile(DatasetFlatFactorPosNegOut$flat_factor)
+# 0%       25%       50%       75%      100% 
+# 0.0974478 0.3368351 0.3883558 0.4634898 0.5400458 
+
+# O quartil está mais equilibrado, apesar das amostras (bancos de dados) serem 
+# pequenas (39)
+
+#PlotDistribuicaoDensidadeFlatPosNegociacao.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactorPosNegOut$flat_factor))
+
+#PlotDistribuicaoDensidadeFlatt+Frequencia_PosNegociacao.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactorPosNegOut$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactorPosNegOut)))
+
+#identificando outliers
+boxplot.stats(DatasetFlatFactorPosNegOut$flat_factor)
+# $stats
+# [1] 0.1904048 0.3341353 0.3883558 0.4641889 0.5400458
+# 
+# $n
+# [1] 48
+# 
+# $conf
+# [1] 0.3586967 0.4180150
+# 
+# $out
+# [1] 0.1207598 0.0974478
+
+#-----------------------------------------
+# Será criada também uma nova categoria para o Segmento 
+# de pos negociacao com os outliers
+#-----------------------------------------
+
+#exportando lista para nova categorizacao no processo ETL
+write.csv(DatasetFlatFactorPosNegOut,"C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco/dataset/AnaliseFlat/outputs/OutliersPOS_NEGOCIACAO.csv")
+
+
+
+#-----------------------------------------
+# Observando densidade e frequencia dos exemplares
+  # para o segmento CORPORATIVO
+#-----------------------------------------
+
+#criando novo dataframe com exemplares somente do segmento CORPORATIVO
+# numero de exemplares:320
+DatasetFlatFactorCorporativo <- DatasetFlatFactorPersistentData[DatasetFlatFactorPersistentData$segment == "CORPORATIVO",]
+
+summary(DatasetFlatFactorCorporativo)
+
+head(DatasetFlatFactorCorporativo)
+
+#PlotDistribuicaoDensidadeFlatCorporativo.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactorCorporativo$flat_factor))
+
+#PlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactorCorporativo$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactorCorporativo)))
+
+#identificando outliers
+boxplot.stats(DatasetFlatFactorCorporativo$flat_factor)
+# $stats
+# [1] 0.2540541 0.6900000 0.9609753 0.9901961 0.9986486
+# 
+# $n
+# [1] 342
+# 
+# $conf
+# [1] 0.9353276 0.9866231
+# 
+# $out
+# [1] 0.164864864 0.024489795 0.173387096 0.112804878 0.098214285 0.114864864 0.048648648 0.192307692
+# [9] 0.164864864 0.045945945 0.025348542 0.167567567 0.125675675 0.166666666 0.086956521 0.002702702
+# [17] 0.136486486 0.200000000 0.055405405 0.075675675 0.013513513 0.062162162 0.070270270 0.079646017
+# [25] 0.141592920 0.044594594 0.098648648 0.021621621 0.094594594 0.166216216 0.011904761 0.098648648
+# [33] 0.059347181
+
+# Maior outlier identificado 0.200000000, sera criado um novo 
+# dataset somente com valores menores do que esse.
+
+#-----------------------------------------
+#criando novo dataframe com outliers somente do segmento CORPORATIVO
+# numero de exemplares:24
+#-----------------------------------------
+DatasetFlatFactorCorporativoOut <- DatasetFlatFactorCorporativo[DatasetFlatFactorCorporativo$flat_factor <= 0.200000000,]
+
+summary(DatasetFlatFactorCorporativoOut)
+
+quantile(DatasetFlatFactorCorporativoOut$flat_factor)
+# > quantile(DatasetFlatFactorCorporativoOut$flat_factor)
+# 0%         25%         50%         75%        100% 
+# 0.002702702 0.048648648 0.094594594 0.141592920 0.200000000 
+
+# O quartil está mais equilibrado, apesar das amostras (bancos de dados) serem 
+# porém o percentil que referece a amostras com persistencia de dados possuem 
+# um fator de persistencia baixo
+
+#PlotDistribuicaoDensidadeFlatCorporativo.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(DatasetFlatFactorCorporativoOut$flat_factor))
+
+#OUTLIER_PlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = DatasetFlatFactorCorporativoOut$flat_factor, y = rep(-0.0005, nrow(DatasetFlatFactorCorporativoOut)))
+
+#identificando outliers
+boxplot.stats(DatasetFlatFactorCorporativoOut$flat_factor)
+# $stats
+# [1] 0.1904048 0.3341353 0.3883558 0.4641889 0.5400458
+# 
+# $n
+# [1] 48
+# 
+# $conf
+# [1] 0.3586967 0.4180150
+# 
+# $out
+# [1] 0.1207598 0.0974478
+
+#-----------------------------------------
+# Será criada uma nova categoria para o Segmento 
+# CORPORATIVO com os outliers
+#-----------------------------------------
+
+#exportando lista para nova categorizacao no processo ETL
+write.csv(DatasetFlatFactorCorporativoOut,"C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco/dataset/AnaliseFlat/outputs/OutliersCORPORATIVO.csv")
+
+#####################################################
+#----------------------------------------------------
+# Após analisado a necessidade da criação de uma nova categoria.
+# foi gerado um novo dataset com essa distribuição, será realizado 
+# uma nova análise exploratória.
+#----------------------------------------------------
+#####################################################
+
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco/dataset/AnaliseFlat")
+
+#lendo arquivos csv (criando dataset)
+OUTDatasetFlatFactor <- read.csv("NovoSegmentoDatasetFlatFactor.csv")
+
+head(OUTDatasetFlatFactor)
+
+# Numero de amostras :1569 
+summary(OUTDatasetFlatFactor)
+
+#-----------------------------------------
+# Realizando nova análise exploratória sob
+# amostras que tiveram algum comportamento 
+# sendo crescimento ou expurgo durante o 
+# preíodo observado
+#-----------------------------------------
+
+#criando novo data frame com exemplares com padrão de persistencia/dia < 1
+OUTDatasetFlatFactorPersistentData <- OUTDatasetFlatFactor[OUTDatasetFlatFactor$flat_factor < 1,]
+
+summary(OUTDatasetFlatFactorPersistentData)
+#Numero de amostras:935
+
+# !!! Dados de distribuição e Densidade não foram alterados
+
+
+#BoxplotFatorPersistenciaPorSegmentoNegocio(6Segmentos_2Novos).png
+#plotando relacao de persistencia/dia por segmento
+boxplot(flat_factor~segment,data=OUTDatasetFlatFactorPersistentData, main="Fator de Persistência por Ambiente", 
+        xlab="Ambiente", ylab="Persistência/Dia (flat_factor%)")
+
+
+
+boxplot.stats(flat_factor~segment,data=DatasetFlatFactorPosNeg, main="Fator de Persistência por Ambiente", 
+              xlab="Ambiente", ylab="Persistência/Dia (flat_factor%)")
+
+
+#criando novo data frame com exemplares de OUTLIERS POS NEGOCIACAO
+OUTDatasetFlatFactorPersistentData_PosNegociacao <- OUTDatasetFlatFactorPersistentData[OUTDatasetFlatFactorPersistentData$segment == "POS NEGOCIACAO",]
+
+# qtde de exemplares: 318
+summary(OUTDatasetFlatFactorPersistentData_PosNegociacao)
+
+quantile(OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# > quantile(OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# 0%       25%       50%       75%      100% 
+# 0.5563258 0.9101655 0.9796472 0.9957865 0.9986505
+
+
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor))
+
+#OUTLIERS_SegundoNivelPlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor, y = rep(-0.0005, nrow(OUTDatasetFlatFactorPersistentData_PosNegociacao)))
+
+#identificando novos outliers para o segmento POS NEGOCIACAO
+boxplot.stats(OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# $stats
+# [1] 0.8000000 0.9101655 0.9796472 0.9957865 0.9986505
+# 
+# $n
+# [1] 341
+# 
+# $conf
+# [1] 0.9723213 0.9869731
+# 
+# $out
+# [1] 0.5983718 0.7142857 0.7341430 0.7010870 0.5766621 0.5904173 0.7666099 0.7109737 0.6219512
+# [10] 0.5708502 0.7078652 0.7228412 0.6306028 0.5953488 0.6221323 0.6947083 0.6464471 0.5837209
+# [19] 0.6896086 0.7078825 0.6027211 0.6816720 0.7651163 0.5563258 0.6607717 0.6595745 0.7692308
+# [28] 0.7021277 0.7737342 0.7651163 0.7759784 0.7582260 0.7748092 0.7814485 0.6429675 0.6963563
+# [37] 0.6706485
+
+
+# será criado novo dataframe com os outliers para criação da segunda
+# subdivisão do segmento de pos negociacao o número de "corte" será 0.7814485
+
+
+#-----------------------------------------
+#criando novo dataframe com segunda sub categoria derivada dos outliers 
+# do segmento pos negociacao
+# numero de exemplares:24
+#-----------------------------------------
+OUT2DatasetFlatFactorPersistentData_PosNegociacao <- OUTDatasetFlatFactorPersistentData_PosNegociacao[OUTDatasetFlatFactorPersistentData_PosNegociacao$flat_factor <= 0.7814485,]
+
+summary(OUT2DatasetFlatFactorPersistentData_PosNegociacao)
+
+quantile(OUT2DatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# > quantile(OUT2DatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# 0%       25%       50%       75%      100% 
+# 0.5563258 0.6220870 0.6921585 0.7256667 0.7759784 
+# > 
+#PlotDistribuicaoDensidadeFlatCorporativo.png
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(OUT2DatasetFlatFactorPersistentData_PosNegociacao$flat_factor))
+
+#OUTLIER_PlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = OUT2DatasetFlatFactorPersistentData_PosNegociacao$flat_factor, y = rep(-0.0005, nrow(OUT2DatasetFlatFactorPersistentData_PosNegociacao)))
+
+#identificando outliers
+boxplot.stats(OUT2DatasetFlatFactorPersistentData_PosNegociacao$flat_factor)
+# $stats
+# [1] 0.5563258 0.6220417 0.6921585 0.7284921 0.7759784
+# 
+# $n
+# [1] 36
+# 
+# $conf
+# [1] 0.6641265 0.7201904
+# 
+# $out
+# numeric(0)
+#não ha outliers
+
+
+
+#-----------------------------------------
+# Será criada uma segunda sub categoria para o Segmento 
+# POS NEGOCIACAO com os outliers
+#-----------------------------------------
+
+#exportando lista para nova categorizacao no processo ETL
+write.csv(OUT2DatasetFlatFactorPersistentData_PosNegociacao,"C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco/dataset/AnaliseFlat/outputs/OutliersSegundoNivelPOS_NEGOCIACAO.csv")
+
+
+
+#-----------------------------------------
+#criando novo dataframe com segunda sub categoria derivada dos outliers 
+# do segmento corporativo
+#-----------------------------------------
+#criando novo data frame com exemplares de OUTLIERS POS NEGOCIACAO
+OUTDatasetFlatFactorPersistentData_CORPORATIVO <- OUTDatasetFlatFactorPersistentData[OUTDatasetFlatFactorPersistentData$segment == "CORPORATIVO",]
+
+# qtde de exemplares: 290
+summary(OUTDatasetFlatFactorPersistentData_CORPORATIVO)
+
+quantile(OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# > quantile(OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# 0%       25%       50%       75%      100% 
+# 0.2540541 0.8189189 0.9716216 0.9910714 0.9986486 
+
+
+plot(density(OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor))
+
+#OUTLIER_PlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor, y = rep(-0.0005, nrow(OUTDatasetFlatFactorPersistentData_CORPORATIVO)))
+
+#identificando outliers para novo sub grupo CORPORATIVO
+boxplot.stats(OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# $stats
+# [1] 0.5614973 0.8189189 0.9716216 0.9910714 0.9986486
+# 
+# $n
+# [1] 309
+# 
+# $conf
+# [1] 0.9561480 0.9870952
+# 
+# $out
+# [1] 0.5367089 0.2589286 0.3323171 0.3546512 0.5135135 0.4689189 0.4756757 0.5027027 0.4770270
+# [10] 0.2540541 0.2567568 0.4729730 0.4472973 0.2727273 0.4039088 0.5189189 0.3040541 0.2689189
+# [19] 0.3229730 0.4891892 0.5270270 0.4851351 0.3513957 0.4613095 0.3531157 0.4379747 0.3067568
+# [28] 0.4903130
+
+# Será criado novo dataframe utilizando o 0.5367089 como maior valor
+
+
+OUT2DatasetFlatFactorPersistentData_CORPORATIVO <- OUTDatasetFlatFactorPersistentData_CORPORATIVO[OUTDatasetFlatFactorPersistentData_CORPORATIVO$flat_factor <= 0.5367089,]
+
+# numero de exemplares: 22
+summary(OUT2DatasetFlatFactorPersistentData_CORPORATIVO)
+
+quantile(OUT2DatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# > quantile(OUT2DatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# 0%       25%       50%       75%      100% 
+# 0.2540541 0.3189189 0.4426360 0.4861486 0.5367089 
+
+
+#plot de densidade dos dados coletados, ou seja muitos bancos do ambiente possuem comportamento flat
+plot(density(OUT2DatasetFlatFactorPersistentData_CORPORATIVO$flat_factor))
+
+#OUTLIERS_SegundoNivelPlotDistribuicaoDensidadeFlatt+Frequencia_Corporativo.png
+#inserindo points de observação de densidade da distribuição do comportamento flat.
+points(x = OUT2DatasetFlatFactorPersistentData_CORPORATIVO$flat_factor, y = rep(-0.0005, nrow(OUT2DatasetFlatFactorPersistentData_CORPORATIVO)))
+
+#identificando outliers
+boxplot.stats(OUT2DatasetFlatFactorPersistentData_CORPORATIVO$flat_factor)
+# $stats
+# [1] 0.2540541 0.3148649 0.4426360 0.4871622 0.5367089
+# 
+# $n
+# [1] 28
+# 
+# $conf
+# [1] 0.3911894 0.4940826
+# 
+# $out
+# numeric(0)
+
+#não ha outliers
+
+
+#-----------------------------------------
+# Será criada uma segunda sub categoria para o Segmento 
+# corporativo com os outliers
+#-----------------------------------------
+#setando o diretorio de trabalho (work directory)
+setwd("C:/Fabio Battestin/!PROJETO/machineLearning/Estudo de Disco/dataset/AnaliseFlat")
+
+#lendo arquivos csv (criando dataset)
+N2OUTDatasetFlatFactor <- read.csv("Nivel2NovoSegmentoDatasetFlatFactor.csv")
+
+head(N2OUTDatasetFlatFactor)
+
+# Numero de amostras :1569 
+summary(N2OUTDatasetFlatFactor)
+
+
+#BoxplotFatorPersistenciaPorSegmentoNegocio(8Segmentos_2Novos).png
+#plotando relacao de persistencia/dia por segmento
+boxplot(flat_factor~segment,data=N2OUTDatasetFlatFactor, main="Fator de Persistência por Ambiente", 
+        xlab="Ambiente", ylab="Persistência/Dia (flat_factor%)")
+
+spineplot(x = N2OUTDatasetFlatFactor$idproduct, y = N2OUTDatasetFlatFactor$segment)
+
+
+mosaicplot(table(N2OUTDatasetFlatFactor$segment, N2OUTDatasetFlatFactor$idProduct),las = 3)
