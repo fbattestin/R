@@ -1,0 +1,34 @@
+install.packages("digest")
+
+library("digest")
+
+setwd("/Users/fabioleitedossantos/Downloads")
+
+
+cpf <- read.csv("data.csv")
+
+head (cpf)
+
+for (row in 1:nrow(cpf)){
+  id <- cpf[row, "id"]
+  doc <- cpf[row, "cpf"]
+  print (paste( id, doc,digest(doc,"sha256")))
+}
+
+for (i in 1:dim(surveys_adjusted)[1]) {
+  if (surveys_adjusted$year[i] == 1984) {
+    surveys_adjusted$weight[i] <- surveys_adjusted$weight[i]*1.1
+  } 
+}
+
+https://erdavenport.github.io/R-ecology-lesson/03-loops-and-functions.html
+
+
+
+my_hashed_cod<-as.matrix(x)
+
+for (i in 1:nrow(cpf)){
+  x[[,i]]<-(digest(cpf[i,], "sha256"))
+}
+
+my_hashed_mails<-as.matrix(x)
