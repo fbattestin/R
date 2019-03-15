@@ -1,34 +1,31 @@
-install.packages("digest")
+setwd("c:/temp/")
 
 library("digest")
 
-setwd("/Users/fabioleitedossantos/Downloads")
+base_amostral <- read.csv("AmostraCPFS_HASH.csv")
 
+head(base_amostral)
 
-cpf <- read.csv("data.csv")
-
-head (cpf)
-
-for (row in 1:nrow(cpf)){
-  id <- cpf[row, "id"]
-  doc <- cpf[row, "cpf"]
-  print (paste( id, doc,digest(doc,"sha256")))
+#sha256 (CPF)
+for (i in 1:dim(base_amostral)[1]) {
+  base_amostral$HASH[i] <- digest(toString(base_amostral$DOC[i]),algo = "sha256", serialize = FALSE)
 }
 
-for (i in 1:dim(surveys_adjusted)[1]) {
-  if (surveys_adjusted$year[i] == 1984) {
-    surveys_adjusted$weight[i] <- surveys_adjusted$weight[i]*1.1
-  } 
+head(base_amostral)
+
+#SHA256 (CPF & sha256 (CPF))
+for (i in 1:dim(base_amostral)[1]) {
+  hash <<- digest(toString(base_amostral$DOC[i]),algo = "sha256", serialize = FALSE)
+  print (paste("Hash Somente CPF",toString(base_amostral$DOC[i]),":",hash))
+  salt_hash <<- paste(base_amostral$DOC[i],hash,sep="")
+  print (paste("Concatenacao:",salt_hash))
+  base_amostral$HASH[i] <- digest(toString(salt_hash),algo = "sha256", serialize = FALSE)
 }
 
-https://erdavenport.github.io/R-ecology-lesson/03-loops-and-functions.html
 
-
-
-my_hashed_cod<-as.matrix(x)
-
-for (i in 1:nrow(cpf)){
-  x[[,i]]<-(digest(cpf[i,], "sha256"))
+#SHA256 (CPF & sha256 (CPF))
+for (i in 1:dim(base_amostral)[1]) {
+  hash <<- digest(toString(base_amostral$DOC[i]),algo = "sha256", serialize = FALSE)
+  salt_hash <<- paste(base_amostral$DOC[i],hash,sep="")
+  base_amostral$HASH[i] <- digest(toString(salt_hash),algo = "sha256", serialize = FALSE)
 }
-
-my_hashed_mails<-as.matrix(x)
